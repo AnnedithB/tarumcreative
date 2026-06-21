@@ -7,12 +7,12 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const IMAGES = [
-  { id: 1, src: "https://images.unsplash.com/photo-1529218402470-5dec8fea0761?w=900&auto=format&fit=crop&q=60", label: "Studio" },
-  { id: 2, src: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&auto=format&fit=crop&q=60", label: "Tokyo" },
-  { id: 3, src: "https://images.unsplash.com/photo-1604928141064-207cea6f571f?w=800&auto=format&fit=crop&q=60", label: "Cyber" },
-  { id: 4, src: "https://images.unsplash.com/photo-1573455494060-c5595004fb6c?w=800&auto=format&fit=crop&q=60", label: "Night" },
-  { id: 5, src: "https://images.unsplash.com/photo-1542052125323-e69ad37a47c2?w=800&auto=format&fit=crop&q=60", label: "City" },
-  { id: 6, src: "https://images.unsplash.com/photo-1564284369929-026ba231f89b?q=80&w=2070", label: "Abstract" },
+  { id: 1, src: "/gallery/1.png", label: "Portrait" },
+  { id: 2, src: "/gallery/2.png", label: "Cyberpunk" },
+  { id: 3, src: "/gallery/3.png", label: "Architecture" },
+  { id: 4, src: "/gallery/4.png", label: "Product" },
+  { id: 5, src: "/gallery/5.png", label: "Interior" },
+  { id: 6, src: "/gallery/6.png", label: "Abstract" },
 ];
 
 interface BackgroundItemProps {
@@ -213,11 +213,12 @@ const HeroBackground = React.memo(({ isGenerating, onImageClick, staticOffsetY }
 HeroBackground.displayName = "HeroBackground";
 
 const GENERATING_IMAGES = [
-  "https://images.unsplash.com/photo-1528361237150-8a9a7df33035?q=80&w=2340",
-  "https://images.unsplash.com/photo-1493515322954-4fa727e97985?q=80&w=1740",
-  "https://images.unsplash.com/photo-1608875004752-2fdb6a39ba4c?q=80&w=2340",
-  "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=800&auto=format&fit=crop&q=60",
-  "https://images.unsplash.com/photo-1529218402470-5dec8fea0761?w=900&auto=format&fit=crop&q=60"
+  "/gallery/1.png",
+  "/gallery/2.png",
+  "/gallery/3.png",
+  "/gallery/4.png",
+  "/gallery/5.png",
+  "/gallery/6.png"
 ];
 
 const Mini3DCarousel = () => {
