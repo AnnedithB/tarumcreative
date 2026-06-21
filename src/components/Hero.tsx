@@ -45,7 +45,7 @@ const BackgroundItem = React.memo(({ img, idx, isGenerating, onImageClick, isRig
       scale: 1,
       x: 0,
       y: 0,
-      transition: { duration: 1.2, ease: [0.23, 1, 0.32, 1] }
+      transition: { duration: 1.2, ease: [0.23, 1, 0.32, 1] as any }
     },
     generating: {
       opacity: 0.6,
@@ -55,7 +55,7 @@ const BackgroundItem = React.memo(({ img, idx, isGenerating, onImageClick, isRig
       left: "auto",
       right: "auto",
       bottom: "auto",
-      transition: { duration: 1.5, ease: [0.23, 1, 0.32, 1] }
+      transition: { duration: 1.5, ease: [0.23, 1, 0.32, 1] as any }
     }
   };
 
@@ -141,7 +141,7 @@ const SideCarousel = React.memo(({ images, isGenerating, isRight, onImageClick }
     <motion.div
       initial={{ opacity: 0, x: isRight ? 100 : -100 }}
       animate={{ opacity: isGenerating ? 1 : 0, x: isGenerating ? 0 : (isRight ? 100 : -100) }}
-      transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
+      transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] as any }}
       onWheel={handleWheel}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
