@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useAnimationFrame, MotionValue } from "framer-motion";
-import { Paperclip, Mic, ArrowUp, ArrowRight, Sparkles, History as HistoryIcon, LayoutGrid, Cpu, Lightbulb, Sliders, ChevronDown, X } from "lucide-react";
+import { Paperclip, Mic, ArrowUp, ArrowRight, Sparkles, History as HistoryIcon, LayoutGrid, Cpu, Lightbulb, Sliders, ChevronDown, X, Ratio, Zap, Palette, ImageIcon, Layers, Settings2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -222,74 +222,80 @@ const GENERATING_IMAGES = [
 ];
 
 const Mini3DCarousel = () => {
-  const rotation = useMotionValue(0);
-  const [isDragging, setIsDragging] = useState(false);
+  // Use images from the IMAGES array (gallery/1.png - gallery/6.png)
+  const items = [...IMAGES, IMAGES[0]].slice(0, 7);
+  const count = items.length;
 
-  // Continuous drift
-  useAnimationFrame((time, delta) => {
-    if (!isDragging) {
-      rotation.set(rotation.get() - delta * 0.015);
-    }
-  });
-
-  const smoothRotation = useSpring(rotation, { stiffness: 40, damping: 20, mass: 0.8 });
-
-  // Triple the items for visual density in the circle
-  const items = [...GENERATING_IMAGES, ...GENERATING_IMAGES];
-  const radius = 240; // Tightened from 350
+  // Smaller rainbow arc configuration
+  const arcRadius = 250;
+  const totalArcAngle = 180;
+  const angleStep = totalArcAngle / (count - 1);
+  const startAngle = -180;
 
   return (
-    <div className="relative w-full h-[280px] flex items-center justify-center overflow-visible perspective-[1200px] cursor-grab active:cursor-grabbing">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+    <div className="relative w-[700px] h-[280px] flex items-end justify-center overflow-visible will-change-transform transform-gpu">
+      {/* Ambient glow at the base */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[550px] h-[220px] bg-violet-600/10 blur-[100px] rounded-full pointer-events-none" />
 
-      <motion.div
-        drag="x"
-        onDragStart={() => setIsDragging(true)}
-        onDragEnd={() => setIsDragging(false)}
-        onDrag={(e, info) => {
-          rotation.set(rotation.get() + info.delta.x * 0.2);
-        }}
-        className="relative w-full h-full flex items-center justify-center transform-style-3d"
-      >
-        {items.map((src, i) => {
-          const angleStep = (360 / items.length);
-          const baseAngle = i * angleStep;
+      {items.map((img, i) => {
+        const angleDeg = startAngle + i * angleStep;
+        const angleRad = (angleDeg * Math.PI) / 180;
 
-          const angle = useTransform(smoothRotation, (r) => (baseAngle + r) % 360);
+        const x = Math.cos(angleRad) * arcRadius;
+        const y = Math.sin(angleRad) * arcRadius;
+        const cardRotate = angleDeg + 90;
 
-          const x = useTransform(angle, (a) => Math.sin((a * Math.PI) / 180) * radius);
-          const z = useTransform(angle, (a) => Math.cos((a * Math.PI) / 180) * radius);
-          const rotateY = useTransform(angle, (a) => a);
-          const opacity = useTransform(angle, (a) => {
-            const norm = ((a % 360) + 360) % 360;
-            const dist = Math.abs(norm - 180);
-            return Math.max(0, 1 - (dist / 120));
-          });
-          const scale = useTransform(angle, (a) => {
-            const norm = ((a % 360) + 360) % 360;
-            const dist = Math.abs(norm - 180);
-            return 1 - (dist / 1000);
-          });
+        const distFromCenter = Math.abs(i - Math.floor(count / 2));
+        const zIndex = count - distFromCenter;
 
-          return (
-            <motion.div
-              key={`${i}-${src}`}
-              style={{ x, z, rotateY, opacity, scale, position: 'absolute' }}
-              className="w-32 h-44 rounded-[2rem] overflow-hidden border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md"
-            >
-              <Image src={src} alt="Generating..." fill className="object-cover blur-[20px] scale-150 opacity-60" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-white/5" />
+        return (
+          <motion.div
+            key={`arc-rainbow-sm-${i}-${img.id}`}
+            initial={{ opacity: 0, scale: 0.5, x: 0, y: 70 }}
+            animate={{
+              opacity: 1,
+              x: x,
+              y: y,
+              scale: 1,
+              rotate: cardRotate,
+            }}
+            transition={{
+              duration: 1.2,
+              delay: i * 0.08,
+              ease: [0.23, 1, 0.32, 1] as any,
+            }}
+            className="absolute rounded-[1.25rem] overflow-hidden border border-white/[0.08] shadow-[0_20px_40px_rgba(0,0,0,0.8)] bg-black/40 backdrop-blur-md transform-gpu"
+            style={{
+              width: 104,
+              height: 144,
+              zIndex,
+              bottom: 0,
+              willChange: 'transform, opacity',
+            }}
+          >
+            <Image
+              src={img.src}
+              alt="Generating..."
+              fill
+              className="object-cover blur-[10px] scale-125 opacity-60"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-white/10" />
 
-              <div className="absolute bottom-4 left-6 right-6 h-0.5 w-1/2 bg-white/10 rounded-full overflow-hidden mx-auto">
-                <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} className="h-full w-full bg-white/40" />
-              </div>
-            </motion.div>
-          );
-        })}
-      </motion.div>
+            <div className="absolute bottom-4 left-4 right-4 h-[1.5px] bg-white/5 rounded-full overflow-hidden">
+              <motion.div
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 1.5 + (i * 0.1), repeat: Infinity, ease: "linear" }}
+                className="h-full w-full bg-white/40"
+              />
+            </div>
+          </motion.div>
+        );
+      })}
     </div>
   );
 };
+
+
 
 function HeroFront({
   isGenerating,
@@ -305,6 +311,7 @@ function HeroFront({
   promptHistory
 }: any) {
   const [localPrompt, setLocalPrompt] = useState("");
+  const [showControls, setShowControls] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -312,7 +319,7 @@ function HeroFront({
   }, [promptHistory]);
 
   return (
-    <div className="container mx-auto px-6 relative z-10 flex flex-col items-center max-w-4xl pt-28">
+    <div className="container mx-auto px-6 relative z-[70] flex flex-col items-center max-w-4xl h-full justify-start pt-36">
       <AnimatePresence mode="wait">
         {isGenerating && promptHistory.length > 0 && (
           <motion.div
@@ -322,17 +329,17 @@ function HeroFront({
             className="flex flex-col items-center w-full mb-12"
           >
             {/* Single Active Prompt Bubble */}
-            <div className="relative mb-12">
-              <div className="px-10 py-5 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-xl shadow-2xl">
-                <p className="text-2xl font-light text-white/90 leading-relaxed italic animate-pulse">
+            <div className="relative mb-36 z-[80]">
+              <div className="px-10 py-5 rounded-[2.5rem] bg-white/[0.05] border border-white/20 backdrop-blur-2xl shadow-[0_0_100px_rgba(255,255,255,0.05)]">
+                <p className="text-2xl font-light text-white leading-relaxed italic">
                   "{promptHistory[promptHistory.length - 1]}"
                 </p>
               </div>
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-white/[0.03] border-r border-b border-white/10 backdrop-blur-xl" />
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-white/[0.05] border-r border-b border-white/20 backdrop-blur-2xl" />
             </div>
 
             {/* 3D Carousel */}
-            <div className="mb-14">
+            <div className="mb-12">
               <Mini3DCarousel />
             </div>
 
@@ -346,7 +353,7 @@ function HeroFront({
         )}
       </AnimatePresence>
 
-      <motion.div animate={{ y: isGenerating ? 40 : 0 }} className="w-full flex justify-center pb-20">
+      <motion.div animate={{ y: isGenerating ? -20 : 0 }} className="w-full flex justify-center pb-32">
         <div className="w-full max-w-3xl space-y-6">
           <div className="relative group mx-auto">
             <div className="absolute -inset-1 bg-white/5 rounded-[2.5rem] blur-xl opacity-0 group-focus-within:opacity-100 transition duration-1000"></div>
@@ -386,9 +393,83 @@ function HeroFront({
                 </div>
               </div>
               <div className="flex items-center justify-between px-6 py-3 border-t border-white/[0.05] bg-white/[0.01]">
-                <div className="flex items-center gap-3">
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all text-[11px] font-bold text-white/40 hover:text-white uppercase tracking-wider"><Cpu className="w-3.5 h-3.5" /> {activeModel} <ChevronDown className="w-3 h-3" /></button>
+                <div className="flex items-center gap-3 relative">
+                  <button onClick={() => setShowControls(!showControls)} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-[11px] font-bold text-white/40 hover:text-white uppercase tracking-wider", showControls ? "bg-white/10 border-white/20 text-white" : "bg-white/5 border-white/5")}><Settings2 className="w-3.5 h-3.5" /> {activeModel} <ChevronDown className={cn("w-3 h-3 transition-transform", showControls && "rotate-180")} /></button>
                   <button onClick={() => setThinkingMode(!thinkingMode)} className={cn("flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-[11px] font-bold uppercase tracking-wider", thinkingMode ? "bg-white/10 border-white/20 text-white" : "bg-white/5 border-white/5 text-white/40 hover:text-white")}><Lightbulb className={cn("w-3.5 h-3.5", thinkingMode && "text-yellow-400 fill-yellow-400")} /> Thinking</button>
+
+                  <AnimatePresence>
+                    {showControls && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute bottom-full left-0 mb-4 w-[300px] z-[100]"
+                      >
+                        <div className="flex flex-col gap-4 p-6 rounded-[2rem] bg-black/90 border border-white/10 backdrop-blur-2xl shadow-2xl">
+                          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                            <div className="flex items-center gap-2">
+                              <Settings2 className="w-4 h-4 text-white/40" />
+                              <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">Model Controls</span>
+                            </div>
+                            <X className="w-4 h-4 text-white/20 cursor-pointer hover:text-white/40" onClick={() => setShowControls(false)} />
+                          </div>
+
+                          <div className="space-y-4">
+                            {/* Model Selector */}
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25">Selection</label>
+                              <div className="flex flex-col gap-1.5">
+                                {["Tarum Ultra 1.0", "Tarum Creative", "Tarum Fast"].map((m) => (
+                                  <button key={m} onClick={() => setActiveModel(m)} className={cn("w-full text-left px-3 py-2 rounded-xl text-[12px] transition-all", activeModel === m ? "bg-white/10 text-white border border-white/20" : "text-white/40 hover:bg-white/5 hover:text-white")}>{m}</button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Aspect Ratio */}
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25">Aspect Ratio</label>
+                              <div className="grid grid-cols-4 gap-1.5">
+                                {['1:1', '4:3', '16:9', '9:16'].map((r) => (
+                                  <button key={r} className={cn("px-2 py-2 rounded-xl text-[11px] font-bold transition-all border", r === '1:1' ? 'bg-white/10 border-white/20 text-white' : 'bg-white/[0.02] border-white/[0.05] text-white/30 hover:text-white/50')}>{r}</button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Quality & Style */}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25">Quality</label>
+                                <div className="flex flex-col gap-1.5">
+                                  {['Draft', 'HD', 'Ultra'].map(q => (
+                                    <button key={q} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all text-left", q === 'Ultra' ? "bg-white/10 border-white/20 text-white" : "bg-white/5 border-white/5 text-white/30")}>{q}</button>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25">Style</label>
+                                <div className="flex flex-col gap-1.5">
+                                  {['Cinematic', 'Anime', 'Photo', 'Abstract'].map(s => (
+                                    <button key={s} className={cn("px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all text-left", s === 'Cinematic' ? "bg-white/10 border-white/20 text-white" : "bg-white/5 border-white/5 text-white/30")}>{s}</button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Creativity */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/25">Creativity</label>
+                                <span className="text-[10px] font-mono text-white/35">0.75</span>
+                              </div>
+                              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full w-[75%] bg-white/20 rounded-full" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 <div className="flex items-center gap-4"><button className="p-1.5 text-white/20 hover:text-white transition-colors"><Sliders className="w-4 h-4" /></button></div>
               </div>
